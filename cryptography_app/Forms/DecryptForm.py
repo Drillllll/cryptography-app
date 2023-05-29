@@ -58,8 +58,11 @@ class DecryptForm:
         output_path = os.path.join(output_folder, output_file)
 
         # Wywołanie funkcji encrypt_with_hybrid z przekazanymi wartościami
-        self.encrypting_manager.decrypt_with_hybrid(input_file, private_key_file, output_path)
-        messagebox.showinfo("OK", "OK")
+        result = self.encrypting_manager.decrypt_with_hybrid(input_file, private_key_file, output_path)
+        if result is True:
+            messagebox.showinfo("OK", "OK")
+        else:
+            messagebox.showinfo("NO GOOD", "VERY BAD")
         self.root.destroy()
 
     def open_form(self):

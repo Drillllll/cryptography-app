@@ -47,19 +47,6 @@ class EncryptingManager:
         with open(private_key_path, 'wb') as file:
             file.write(pem_private_key)
 
-    def encrypt_file(self, file_path, symmetric_key, iv, encrypted_file_path):
-        cipher = Cipher(algorithms.AES(symmetric_key), modes.CBC(iv), backend=default_backend())
-        encryptor = cipher.encryptor()
-
-        with open(file_path, "rb") as file:
-            file_data = file.read()
-
-        padder = padding.PKCS7(algorithms.AES.block_size).padder()
-        padded_data = padder.update(file_data) + padder.finalize()
-        encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
-
-        with open(encrypted_file_path, "wb") as file:
-            file.write(encrypted_data)
 
     def get_public_key_from_certificate(self, certificate_path):
         with open(certificate_path, "rb") as file:
@@ -189,36 +176,42 @@ class EncryptingManager:
             file.write(ciphertext)
 
     def decrypt_with_hybrid(self, file_path, private_key_path, output_path):
-        # Odczytanie klucza prywatnego
-        with open(private_key_path, "rb") as file:
-            private_key = serialization.load_pem_private_key(
-                file.read(),
-                password=None,
-                backend=default_backend()
+        try:
+            # Odczytanie klucza prywatnego
+            with open(private_key_path, "rb") as file:
+                private_key = serialization.load_pem_private_key(
+                    file.read(),
+                    password=None,
+                    backend=default_backend()
+                )
+
+            # Odczytanie zaszyfrowanych danych
+            with open(file_path, "rb") as file:
+                iv = file.read(16)
+                encrypted_symmetric_key = file.read(256)  # Długość klucza RSA w bajtach
+                ciphertext = file.read()
+
+            # Odszyfrowanie klucza symetrycznego za pomocą klucza prywatnego RSA
+            symmetric_key = private_key.decrypt(
+                encrypted_symmetric_key,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
             )
 
-        # Odczytanie zaszyfrowanych danych
-        with open(file_path, "rb") as file:
-            iv = file.read(16)
-            encrypted_symmetric_key = file.read(256)  # Długość klucza RSA w bajtach
-            ciphertext = file.read()
+            # Odszyfrowanie pliku symetrycznym algorytmem AES w trybie CBC z użyciem IV
+            cipher = Cipher(algorithms.AES(symmetric_key), modes.CBC(iv), backend=default_backend())
+            decryptor = cipher.decryptor()
 
-        # Odszyfrowanie klucza symetrycznego za pomocą klucza prywatnego RSA
-        symmetric_key = private_key.decrypt(
-            encrypted_symmetric_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+            plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
-        # Odszyfrowanie pliku symetrycznym algorytmem AES w trybie CBC z użyciem IV
-        cipher = Cipher(algorithms.AES(symmetric_key), modes.CBC(iv), backend=default_backend())
-        decryptor = cipher.decryptor()
+            # Zapisanie odszyfrowanych danych do pliku wyjściowego
+            with open(output_path, "wb") as file:
+                file.write(plaintext)
 
-        plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+            return True
 
-        # Zapisanie odszyfrowanych danych do pliku wyjściowego
-        with open(output_path, "wb") as file:
-            file.write(plaintext)
+        except ValueError as error:
+            return False
