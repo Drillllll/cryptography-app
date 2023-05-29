@@ -1,34 +1,8 @@
-from cryptography import x509
 from cryptography.x509.oid import NameOID
 from datetime import datetime, timedelta
-from cryptography.hazmat.backends import default_backend
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-import secrets
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import os
-import secrets
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import os
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-import os
-import secrets
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding as sym_padding
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -91,13 +65,13 @@ class EncryptingManager:
         with open(certificate_path, "rb") as file:
             certificate_data = file.read()
 
-        certificate = serialization.load_pem_x509_certificate(certificate_data, default_backend())
+        certificate = x509.load_pem_x509_certificate(certificate_data, default_backend())
         public_key = certificate.public_key()
 
         return public_key
 
 
-    def generate_certificate(self, public_key_path, private_key_path, certificate_path):
+    def generate_certificate(self, public_key_path, private_key_path, certificate_path, common_name, organization_name, country_name):
         # Odczytanie klucza publicznego
         with open(public_key_path, "rb") as file:
             public_key = serialization.load_pem_public_key(
@@ -115,9 +89,9 @@ class EncryptingManager:
 
         # Utworzenie informacji o właścicielu certyfikatu
         subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, u"Przykładowa Osoba"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Przykładowa Organizacja"),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, u"PL")
+            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization_name),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country_name)
         ])
 
         # Utworzenie numeru seryjnego certyfikatu
@@ -165,19 +139,23 @@ class EncryptingManager:
 
 
 
-    def encrypt_with_hybrid(self, file_path, public_key_path, output_path):
+    def encrypt_with_hybrid(self, file_path, receiver_certificate_path, output_path):
+        public_key = self.get_public_key_from_certificate(receiver_certificate_path)
+
         def pad_data(data):
             block_size = 16
             padding_size = block_size - (len(data) % block_size)
             padding = bytes([padding_size] * padding_size)
             return data + padding
 
+        """
         # Odczytanie klucza publicznego
         with open(public_key_path, "rb") as file:
             public_key = serialization.load_pem_public_key(
                 file.read(),
                 backend=default_backend()
             )
+        """
 
         # Wygenerowanie losowego klucza symetrycznego
         symmetric_key = os.urandom(32)  # 32 bajty = 256 bitów
