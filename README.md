@@ -13,6 +13,7 @@ zrobione:
 do zrobienia:
 - Demonstracja, że poufność danych jest rzeczywiście chroniona kryptograficznie, porównanie z ochroną systemową praw dostępu
 - generowanie klucza zapasowego/awaryjnego
+- znalezienie miejsca na bezpieczne przechowywanie klucza publicznego bo teraz to jest do dupy. Mozna by niby go szyfrowac symetrycznie haslem uzytkownika ale to sie mija z idea szyfrowania asymetrycznego w którym uzytkonik nie musi pamietac zadnych hasel
 
 nad tym trzeba pomyśleć:
 - czy jest możliwość generowania certyfikatu przez centrum certyfikacji?
