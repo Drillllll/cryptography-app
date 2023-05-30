@@ -17,4 +17,5 @@ do zrobienia:
 nad tym trzeba pomyśleć:
 - czy jest możliwość generowania certyfikatu przez centrum certyfikacji?
 - dlaczego gdy próbujemy deszyfrować plik niepoprawnym kluczem prywatnym to wyrzucany jest błąd? Czy nie powinno być tak, że proces deszyfrowania powiedzie się, ale plik będzie nieczytelny? ( w sensie źle zdeszyfrowany)
+- co jesli któryś bajt w zaszyfrowanym pliku ulegnie uszkodzeniu?
 
