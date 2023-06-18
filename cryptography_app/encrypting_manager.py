@@ -16,14 +16,17 @@ class EncryptingManager:
     def __int__(self):
         self.name = "c00oOoOl manager"
 
-    def generate_keys(self, public_key_path, private_key_path):
+    def generate_keys(self, public_key_path, private_key_path, password):
+
         # Wygenerowanie pary kluczy
+
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048
         )
 
         # Pobranie klucza publicznego z prywatnego klucza
+
         public_key = private_key.public_key()
 
         # Serializacja klucza publicznego do formatu PEM
@@ -36,7 +39,8 @@ class EncryptingManager:
         pem_private_key = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            #encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.BestAvailableEncryption(password.encode())
         )
 
         # Zapis klucza publicznego do pliku
@@ -58,7 +62,7 @@ class EncryptingManager:
         return public_key
 
 
-    def generate_certificate(self, public_key_path, private_key_path, certificate_path, common_name, organization_name, country_name):
+    def generate_certificate(self, public_key_path, private_key_path, certificate_path, common_name, organization_name, country_name, password):
         # Odczytanie klucza publicznego
         with open(public_key_path, "rb") as file:
             public_key = serialization.load_pem_public_key(
@@ -70,7 +74,7 @@ class EncryptingManager:
         with open(private_key_path, "rb") as file:
             private_key = serialization.load_pem_private_key(
                 file.read(),
-                password=None,
+                password=password.encode(),
                 backend=default_backend()
             )
 
@@ -175,13 +179,13 @@ class EncryptingManager:
             file.write(encrypted_symmetric_key)
             file.write(ciphertext)
 
-    def decrypt_with_hybrid(self, file_path, private_key_path, output_path):
+    def decrypt_with_hybrid(self, file_path, private_key_path, output_path, password):
         try:
             # Odczytanie klucza prywatnego
             with open(private_key_path, "rb") as file:
                 private_key = serialization.load_pem_private_key(
                     file.read(),
-                    password=None,
+                    password=password.encode(),
                     backend=default_backend()
                 )
 

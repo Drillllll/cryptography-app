@@ -14,6 +14,7 @@ class GeneratorForm:
         Label(self.root, text="Organization name:").grid(row=1, column=0)
         Label(self.root, text="Country name:").grid(row=2, column=0)
         Label(self.root, text="Output Folder:").grid(row=3, column=0)
+        Label(self.root, text="Password:").grid(row=4, column=0)
 
         # Entry
         self.common_name_entry = Entry(self.root, width=30)
@@ -24,6 +25,8 @@ class GeneratorForm:
         self.country_name_entry.grid(row=2, column=1)
         self.output_folder_entry = Entry(self.root, width=30)
         self.output_folder_entry.grid(row=3, column=1)
+        self.password_entry = Entry(self.root, width=30)
+        self.password_entry.grid(row=4, column=1)
 
         # Przyciski
         output_folder_button = Button(self.root, text="Browse", command=self.choose_output_folder)
@@ -44,13 +47,15 @@ class GeneratorForm:
         country_name = self.country_name_entry.get()
         output_folder = self.output_folder_entry.get()
 
+        password = self.password_entry.get()
+
         public_key_path = os.path.join(output_folder, 'public_key.pem')
         private_key_path = os.path.join(output_folder, 'private_key.pem')
         certificate_path = os.path.join(output_folder, 'certificate.pem')
 
-        self.encrypting_manager.generate_keys(public_key_path, private_key_path)
+        self.encrypting_manager.generate_keys(public_key_path, private_key_path, password)
         self.encrypting_manager.generate_certificate(public_key_path, private_key_path, certificate_path, common_name,
-                                                     organization_name, country_name)
+                                                     organization_name, country_name, password)
 
         messagebox.showinfo("OK", "OK")
         self.root.destroy()

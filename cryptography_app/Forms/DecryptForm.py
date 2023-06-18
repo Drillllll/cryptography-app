@@ -13,6 +13,7 @@ class DecryptForm:
         Label(self.root, text="Private Key File:").grid(row=1, column=0)
         Label(self.root, text="Output File Name:").grid(row=2, column=0)
         Label(self.root, text="Output Folder:").grid(row=3, column=0)
+        Label(self.root, text="Password:").grid(row=4, column=0)
 
         # Entry
         self.input_file_entry = Entry(self.root, width=30)
@@ -24,6 +25,8 @@ class DecryptForm:
         self.output_file_entry.insert(0, "Decrypted.txt")
         self.output_folder_entry = Entry(self.root, width=30)
         self.output_folder_entry.grid(row=3, column=1)
+        self.password_entry = Entry(self.root, width=30)
+        self.password_entry.grid(row=4, column=1)
 
         # Przyciski
         input_file_button = Button(self.root, text="Browse", command=self.choose_input_file)
@@ -57,8 +60,10 @@ class DecryptForm:
         output_folder = self.output_folder_entry.get()
         output_path = os.path.join(output_folder, output_file)
 
+        password = self.password_entry.get()
+
         # Wywołanie funkcji encrypt_with_hybrid z przekazanymi wartościami
-        result = self.encrypting_manager.decrypt_with_hybrid(input_file, private_key_file, output_path)
+        result = self.encrypting_manager.decrypt_with_hybrid(input_file, private_key_file, output_path, password)
         if result is True:
             messagebox.showinfo("OK", "OK")
         else:
